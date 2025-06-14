@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -9,60 +9,28 @@ import { Input } from "@/components/ui/input"
 import { Search, MapPin } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
 
-// Mock data for agencies
-const agencies = [
-  {
-    id: 1,
-    name: "Vatican Express",
-    location: "Douala",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.5,
-    busCount: 12,
-  },
-  {
-    id: 2,
-    name: "General Express",
-    location: "Yaoundé",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.2,
-    busCount: 8,
-  },
-  {
-    id: 3,
-    name: "Nso Boys",
-    location: "Bamenda",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.0,
-    busCount: 6,
-  },
-  {
-    id: 4,
-    name: "Golden Express",
-    location: "Buea",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.7,
-    busCount: 10,
-  },
-  {
-    id: 5,
-    name: "Musango Express",
-    location: "Limbe",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 3.9,
-    busCount: 5,
-  },
-  {
-    id: 6,
-    name: "The People Express",
-    location: "Bafoussam",
-    image: "/placeholder.svg?height=200&width=300",
-    rating: 4.3,
-    busCount: 7,
-  },
-]
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api"
+
+interface Agency {
+  id: number
+  name: string
+  location: string
+  image?: string
+  rating: number
+  busCount: number
+}
 
 export default function BusAgenciesPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [agencies, setAgencies] = useState<Agency[]>([])
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/agencies`)
+      .then((res) => res.json())
+      .then((data) => setAgencies(data))
+      .catch((err) => console.error("Failed to load agencies", err))
+  }, [])
 
   const filteredAgencies = agencies.filter(
     (agency) =>

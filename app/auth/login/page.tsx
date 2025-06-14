@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { FcGoogle } from "react-icons/fc"
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api"
+
 export default function LoginPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -23,12 +26,28 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Login submitted:", formData)
-    // In a real app, you would authenticate the user
-    // For now, we'll just redirect to the dashboard
-    router.push("/dashboard")
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.message || "Login failed")
+        return
+      }
+      const data = await res.json()
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(data))
+      }
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Login error", err)
+      alert("Login failed")
+    }
   }
 
   const handleGoogleLogin = () => {

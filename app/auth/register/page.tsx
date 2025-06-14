@@ -12,6 +12,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FcGoogle } from "react-icons/fc"
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api"
+
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -33,12 +36,36 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("Form submitted:", formData)
-    // In a real app, you would send this data to your backend
-    // For now, we'll just redirect to the dashboard
-    router.push("/dashboard")
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.fullName,
+          email: formData.email,
+          contact: formData.contact,
+          password: formData.password,
+          country: formData.country,
+          city: formData.city,
+          age: Number.parseInt(formData.age),
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.message || "Registration failed")
+        return
+      }
+      const data = await res.json()
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(data))
+      }
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Registration error", err)
+      alert("Registration failed")
+    }
   }
 
   const handleGoogleLogin = () => {
